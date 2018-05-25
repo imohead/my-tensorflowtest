@@ -18,6 +18,8 @@ from tensorflow import keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.preprocessing import text, sequence
+import keras.callbacks
+import keras.backend.tensorflow_backend as KTF
 from keras import utils
 from janome.tokenizer import Tokenizer
 
@@ -103,7 +105,13 @@ y_test = utils.to_categorical(y_test, num_classes)
 
 # バッチサイズとトレーニング回数を指定
 batch_size = 32
-epochs = 2
+epochs = 5
+
+# add for TensorBoard
+old_session = KTF.get_session()
+session = tf.Session('')
+KTF.set_session(session)
+KTF.set_learning_phase(1)
 
 # モデルを作成
 model = Sequential()
@@ -113,15 +121,23 @@ model.add(Dropout(0.5))
 model.add(Dense(num_classes))
 model.add(Activation('softmax'))
 
+model.summary()
+
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
+
+#Tensorboard
+log_filepath = './log'
+tb_cb = keras.callbacks.TensorBoard(log_dir=log_filepath, histogram_freq=1)
+cbks = [tb_cb]
 
 # トレーニング開始
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
                     verbose=1,
+                    callbacks=cbks,
                     validation_split=0.1)
 
 # モデルの精度を確認
@@ -129,6 +145,8 @@ score = model.evaluate(x_test, y_test,
                        batch_size=batch_size, verbose=1)
 print('Test score:', score[0])
 print('Test accuracy:', score[1])
+
+
 
 # テストの結果を確認 1,0=Bad, 0,1=Good
 text_labels = encoder.classes_
@@ -157,7 +175,8 @@ def text_to_vector(text):
     return_vector.append(word_vector)
     return return_vector
 
-kenmei = 'このメールはテストの件名です'
+
+kenmei = '夏を乗り切るとっておきの智恵'
 print(t.tokenize(kenmei, wakati=True))
 text = text_to_vector(kenmei)  # ベクトル化
 print(text)
@@ -168,3 +187,8 @@ prediction = model.predict(np.array([text][0]))
 predicted_label = text_labels[np.argmax(prediction)]
 print(prediction)
 print("Predicted label: " + predicted_label + "\n")
+
+### add for TensorBoard
+KTF.set_session(old_session)
+### tensorboard --logdir=./log/
+### http://localhost:6006/で確認

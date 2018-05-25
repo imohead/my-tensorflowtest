@@ -27,7 +27,7 @@ from gensim.models import word2vec
 
 
 ##### ファイル読込み、内部表現化 #####
-f = open('hashire_merosu.txt')
+f = open('hashire_merosu.txt', encoding='sjis')
 text_sjis = f.read()
 f.close()
 #text = text_sjis.decode('sjis')
@@ -210,9 +210,9 @@ model.save_weights(emb_param)           # 学習済みパラメーターセー�
 ##### 評価 #####
 param_list = model.get_weights()
 param = param_list[0]
-word0 = 'セリヌンティウス'
-word1 = '走る'
-word2 = '男'
+word0 = '男'
+word1 = 'セリヌンティウス'
+word2 = '走る'
 vec0 = param[word_indices[word0], :]
 vec1 = param[word_indices[word1], :]
 vec2 = param[word_indices[word2], :]
